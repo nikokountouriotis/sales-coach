@@ -107,7 +107,7 @@ async function loadDashboard() {
     const data = await res.json();
 
     document.getElementById('stat-total').textContent = data.total_calls;
-    document.getElementById('stat-avg').textContent = data.avg_score || 'â';
+    document.getElementById('stat-avg').textContent = data.avg_score || '\u2014';
     const gradeEl = document.getElementById('stat-grade');
     gradeEl.textContent = data.latest_grade;
     gradeEl.className = 'stat-value ' + scoreClass(data.latest_grade);
@@ -257,14 +257,14 @@ function showReview(id, review, repName, prospectName, callDate) {
 
   // Header
   html += `<div class="review-header">
-    <h1>Call Review â ${prospectName}</h1>
+    <h1>Call Review &mdash; ${prospectName}</h1>
     <div class="review-meta">${repName} | ${callDate} | ${review.call_duration || ''} | ${review.outcome || ''}</div>
   </div>`;
 
   // Prospect info
   html += `<div class="prospect-card-review">
-    <div><span class="pc-label">Prospect Type</span><br><span class="pc-value" style="font-weight:600; color:var(--cyan);">${review.prospect_type || 'â'}</span></div>
-    <div><span class="pc-label">Outcome</span><br><span class="pc-value">${review.outcome || 'â'}</span></div>
+    <div><span class="pc-label">Prospect Type</span><br><span class="pc-value" style="font-weight:600; color:var(--cyan);">${review.prospect_type || '&mdash;'}</span></div>
+    <div><span class="pc-label">Outcome</span><br><span class="pc-value">${review.outcome || '&mdash;'}</span></div>
   </div>`;
 
   // Score banner
@@ -277,18 +277,18 @@ function showReview(id, review, repName, prospectName, callDate) {
     </div>
     <div class="total-score-box" style="border-color:var(--${gc}); background:rgba(${gc === 'red' ? '239,68,68' : gc === 'orange' ? '249,115,22' : gc === 'yellow' ? '234,179,8' : gc === 'cyan' ? '6,182,212' : '34,197,94'},0.1);">
       <div class="num" style="color:var(--${gc});">${review.total_score}/100</div>
-      <div class="grade-text" style="color:var(--${gc});">Grade ${review.grade} â ${review.grade_label || ''}</div>
+      <div class="grade-text" style="color:var(--${gc});">Grade ${review.grade} &mdash; ${review.grade_label || ''}</div>
     </div>
   </div>`;
 
   // Stage Execution
-  html += `<div class="section-hdr"><h2>Part 1 â Stage Execution</h2><span class="badge badge-stage">60% of total</span></div>`;
+  html += `<div class="section-hdr"><h2>Part 1 &mdash; Stage Execution</h2><span class="badge badge-stage">60% of total</span></div>`;
 
   if (review.stages) {
     review.stages.forEach(stage => {
       html += `<div class="stage-card">
         <div class="stage-top">
-          <span class="stage-name">Stage ${stage.number} â ${stage.name}</span>
+          <span class="stage-name">Stage ${stage.number} &mdash; ${stage.name}</span>
           <span class="${pillClass(stage.score)}">${stage.score}/5</span>
         </div>`;
 
@@ -340,7 +340,7 @@ function showReview(id, review, repName, prospectName, callDate) {
   }
 
   // Techniques
-  html += `<div class="section-hdr"><h2>Part 2 â Cross-Cutting Techniques</h2><span class="badge badge-tech">25% of total</span></div>`;
+  html += `<div class="section-hdr"><h2>Part 2 &mdash; Cross-Cutting Techniques</h2><span class="badge badge-tech">25% of total</span></div>`;
 
   if (review.techniques) {
     review.techniques.forEach(tech => {
@@ -377,7 +377,7 @@ function showReview(id, review, repName, prospectName, callDate) {
 
   // Upstream Diagnosis
   if (review.upstream_diagnosis?.length) {
-    html += `<div class="section-hdr"><h2>Part 3 â Upstream Diagnosis</h2><span class="badge badge-coach">Root cause analysis</span></div>`;
+    html += `<div class="section-hdr"><h2>Part 3 &mdash; Upstream Diagnosis</h2><span class="badge badge-coach">Root cause analysis</span></div>`;
     review.upstream_diagnosis.forEach(u => {
       html += `<div class="upstream-card">
         <div class="upstream-title">${u.objection}</div>
@@ -393,7 +393,7 @@ function showReview(id, review, repName, prospectName, callDate) {
     html += `<div class="improvement-card">
       <div class="improvement-title">Top 3 Areas to Improve</div>`;
     review.top_3_improvements.forEach(imp => {
-      html += `<div class="improvement-item"><strong>${imp.area}</strong> <span class="action-priority" style="color:${imp.priority === 'HIGH' ? 'var(--red)' : imp.priority === 'MEDIUM' ? 'var(--orange)' : 'var(--yellow)'};">[${imp.priority}]</span> â ${imp.description}</div>`;
+      html += `<div class="improvement-item"><strong>${imp.area}</strong> <span class="action-priority" style="color:${imp.priority === 'HIGH' ? 'var(--red)' : imp.priority === 'MEDIUM' ? 'var(--orange)' : 'var(--yellow)'};">[${imp.priority}]</span> &mdash; ${imp.description}</div>`;
     });
     html += `</div>`;
   }
