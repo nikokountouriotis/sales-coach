@@ -109,7 +109,7 @@ async function loadDashboard() {
     document.getElementById('stat-total').textContent = data.total_calls;
     document.getElementById('stat-avg').textContent = data.avg_score || '\u2014';
     const gradeEl = document.getElementById('stat-grade');
-    gradeEl.textContent = data.latest_grade;
+    gradeEl.textContent = data.latest_grade || '\u2014';
     gradeEl.className = 'stat-value ' + scoreClass(data.latest_grade);
 
     // Rep filter
