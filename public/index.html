@@ -3,15 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sales Coach - NEPQ Call Review Platform</title>
+<title>Sales Coach - AI-Powered NEPQ Call Review</title>
 <link rel="stylesheet" href="/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127775;</text></svg>">
 </head>
 <body>
 
-
 <!-- NAV -->
 <nav class="nav">
-  <div class="nav-brand">Sales Coach</div>
+  <div class="nav-brand">
+    <span class="brand-icon">&#9889;</span> Sales Coach
+  </div>
   <div class="nav-links">
     <a href="#" class="nav-link active" data-page="dashboard">Dashboard</a>
     <a href="#" class="nav-link" data-page="submit">Submit Call</a>
@@ -19,22 +21,160 @@
   </div>
 </nav>
 
-
 <!-- PAGES -->
 <main class="container">
 
-
   <!-- DASHBOARD -->
   <div id="page-dashboard" class="page active">
-    <div class="page-header">
-      <h1>Performance Dashboard</h1>
-      <select id="rep-filter" class="select-input">
-        <option value="">All Reps</option>
-      </select>
+
+    <!-- HERO (shown when no calls) -->
+    <div id="hero-section" class="hero-section">
+      <div class="hero-glow"></div>
+      <div class="hero-content">
+        <div class="hero-badge">AI-Powered Sales Coaching</div>
+        <h1 class="hero-title">Master Every Sales Call</h1>
+        <p class="hero-subtitle">Get instant AI analysis on your NEPQ framework execution. Identify weaknesses, get script rewrites, and close more deals.</p>
+        <a href="#" class="btn btn-primary btn-lg" id="hero-cta" data-page="submit">
+          <span>Analyze Your First Call</span>
+          <span class="btn-arrow">&#8594;</span>
+        </a>
+      </div>
+
+      <!-- Feature cards -->
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #6366f1, #a78bfa);">&#128202;</div>
+          <h3>9-Stage Scoring</h3>
+          <p>Every call scored across all 9 NEPQ stages with detailed hit/miss analysis</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #06b6d4, #22d3ee);">&#128172;</div>
+          <h3>Script Rewrites</h3>
+          <p>Get word-for-word alternatives for what you should have said</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #22c55e, #4ade80);">&#127919;</div>
+          <h3>Action Plans</h3>
+          <p>Prioritized coaching with upstream diagnosis and root-cause fixes</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: linear-gradient(135deg, #f97316, #fb923c);">&#128200;</div>
+          <h3>Track Progress</h3>
+          <p>Watch your scores improve over time with trend charts and grade tracking</p>
+        </div>
+      </div>
+
+      <!-- Demo Dashboard Preview -->
+      <div class="demo-section">
+        <h2 class="demo-title">What Your Dashboard Will Look Like</h2>
+        <p class="demo-subtitle">Submit a few calls and watch your performance data come alive</p>
+      </div>
     </div>
 
+    <!-- DEMO DASHBOARD (always visible as preview) -->
+    <div id="demo-dashboard">
+      <div class="page-header">
+        <h1 id="dashboard-title">Performance Dashboard</h1>
+        <select id="rep-filter" class="select-input">
+          <option value="">All Reps</option>
+        </select>
+      </div>
 
-    <!-- Stat Cards -->
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-label">Total Calls</div>
+      <!-- Stat Cards -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Calls</div>
+          <div class="stat-value" id="stat-total">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Score</div>
+          <div class="stat-value" id="stat-avg">--</div>
+          <div class="stat-sub" id="stat-avg-bar"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Latest Grade</div>
+          <div class="stat-value" id="stat-grade">--</div>
+        </div>
+      </div>
+
+      <!-- Score Trend -->
+      <div class="card" id="trend-card">
+        <h2 class="card-title">Score Trend</h2>
+        <div class="trend-chart" id="trend-chart"></div>
+      </div>
+
+      <!-- Two Column: Weakest Areas + Stage Averages -->
+      <div class="two-col">
+        <div class="card">
+          <h2 class="card-title">Areas to Improve</h2>
+          <div id="weakest-areas"></div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">Stage Averages</h2>
+          <div id="stage-averages"></div>
+        </div>
+      </div>
+
+      <!-- Technique Averages -->
+      <div class="card">
+        <h2 class="card-title">Technique Averages</h2>
+        <div id="technique-averages"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SUBMIT CALL -->
+  <div id="page-submit" class="page">
+    <div class="page-header">
+      <h1>Submit Call for Review</h1>
+    </div>
+    <form id="submit-form" class="submit-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rep Name</label>
+          <input type="text" id="rep-name" class="input" placeholder="e.g. Niko" required>
+        </div>
+        <div class="form-group">
+          <label>Prospect Name</label>
+          <input type="text" id="prospect-name" class="input" placeholder="e.g. Bryan Brown" required>
+        </div>
+        <div class="form-group">
+          <label>Call Date</label>
+          <input type="date" id="call-date" class="input" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Call Transcript</label>
+        <textarea id="transcript" class="textarea" rows="16" placeholder="Paste the full call transcript here..." required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" id="submit-btn">
+        <span class="btn-text">Analyze Call</span>
+        <span class="btn-loading" style="display:none;">
+          <span class="spinner"></span> Analyzing... this takes 30-60 seconds
+        </span>
+      </button>
+    </form>
+  </div>
+
+  <!-- CALL HISTORY -->
+  <div id="page-calls" class="page">
+    <div class="page-header">
+      <h1>Call History</h1>
+    </div>
+    <div id="calls-list">
+      <div class="empty-state">No calls reviewed yet</div>
+    </div>
+  </div>
+
+  <!-- SINGLE CALL REVIEW -->
+  <div id="page-review" class="page">
+    <button class="btn btn-ghost" id="back-btn">&#8592; Back to History</button>
+    <div id="review-content"></div>
+  </div>
+
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>
