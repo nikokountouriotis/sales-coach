@@ -18,6 +18,12 @@ navLinks.forEach(link => {
   });
 });
 
+// Hero CTA button
+document.getElementById('hero-cta')?.addEventListener('click', e => {
+  e.preventDefault();
+  showPage('submit');
+});
+
 document.getElementById('back-btn').addEventListener('click', () => showPage('calls'));
 
 // Set today's date as default
@@ -54,6 +60,55 @@ function barColor(score, max) {
   return 'var(--red)';
 }
 
+// --- Demo Data ---
+const DEMO_DATA = {
+  total_calls: 12,
+  avg_score: 71.5,
+  latest_grade: 'B',
+  reps: ['Niko', 'Sarah', 'Marcus'],
+  trend: [
+    { prospect_name: 'Colin M.', total_score: 46 },
+    { prospect_name: 'Ezekiel R.', total_score: 42 },
+    { prospect_name: 'Bryan B.', total_score: 58 },
+    { prospect_name: 'Linda K.', total_score: 65 },
+    { prospect_name: 'James W.', total_score: 72 },
+    { prospect_name: 'Tanya H.', total_score: 68 },
+    { prospect_name: 'Derek P.', total_score: 78 },
+    { prospect_name: 'Michelle S.', total_score: 82 },
+    { prospect_name: 'Robert C.', total_score: 75 },
+    { prospect_name: 'Amanda L.', total_score: 85 },
+    { prospect_name: 'Kevin T.', total_score: 79 },
+    { prospect_name: 'Jessica N.', total_score: 88 }
+  ],
+  weakest_areas: [
+    { name: 'Connecting Statement', type: 'stage', avg: 2.1 },
+    { name: 'Qualifying Questions', type: 'stage', avg: 2.4 },
+    { name: 'Tonality Control', type: 'technique', avg: 2.7 },
+    { name: 'Consequence Questions', type: 'stage', avg: 3.0 },
+    { name: 'Labeling', type: 'technique', avg: 3.2 }
+  ],
+  stage_averages: [
+    { stage_name: '1. Connecting Statement', avg_score: 2.1 },
+    { stage_name: '2. Situation Questions', avg_score: 3.8 },
+    { stage_name: '3. Problem Awareness', avg_score: 3.5 },
+    { stage_name: '4. Solution Awareness', avg_score: 3.2 },
+    { stage_name: '5. Consequence Questions', avg_score: 3.0 },
+    { stage_name: '6. Qualifying Questions', avg_score: 2.4 },
+    { stage_name: '7. Transition', avg_score: 4.1 },
+    { stage_name: '8. Presentation', avg_score: 3.6 },
+    { stage_name: '9. Close', avg_score: 3.3 }
+  ],
+  technique_averages: [
+    { technique_name: 'Tonality Control', avg_score: 2.7 },
+    { technique_name: 'Labeling', avg_score: 3.2 },
+    { technique_name: 'Mirroring', avg_score: 3.5 },
+    { technique_name: 'Pacing & Leading', avg_score: 3.8 },
+    { technique_name: 'Reframing', avg_score: 3.4 },
+    { technique_name: 'Future Pacing', avg_score: 4.0 },
+    { technique_name: 'Sleight of Mouth', avg_score: 2.9 }
+  ]
+};
+
 // --- Submit Form ---
 document.getElementById('submit-form').addEventListener('submit', async e => {
   e.preventDefault();
@@ -82,10 +137,7 @@ document.getElementById('submit-form').addEventListener('submit', async e => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Review failed');
 
-    // Navigate to review
     showReview(data.id, data.review, body.rep_name, body.prospect_name, body.call_date);
-
-    // Clear form
     document.getElementById('transcript').value = '';
 
   } catch (err) {
@@ -102,92 +154,121 @@ async function loadDashboard() {
   const rep = document.getElementById('rep-filter').value;
   const url = rep ? `/api/stats?rep=${encodeURIComponent(rep)}` : '/api/stats';
 
+  let data;
+  let isDemo = false;
+
   try {
     const res = await fetch(url);
-    const data = await res.json();
-
-    document.getElementById('stat-total').textContent = data.total_calls;
-    document.getElementById('stat-avg').textContent = data.avg_score || '--';
-    const gradeEl = document.getElementById('stat-grade');
-    gradeEl.textContent = data.latest_grade || '--';
-    gradeEl.className = 'stat-value ' + scoreClass(data.latest_grade);
-    // Rep filter
-    const filter = document.getElementById('rep-filter');
-    const currentVal = filter.value;
-    filter.innerHTML = '<option value="">All Reps</option>';
-    data.reps.forEach(r => {
-      const opt = document.createElement('option');
-      opt.value = r;
-      opt.textContent = r;
-      if (r === currentVal) opt.selected = true;
-      filter.appendChild(opt);
-    });
-
-    // Trend chart
-    const trendDiv = document.getElementById('trend-chart');
-    if (data.trend.length === 0) {
-      trendDiv.innerHTML = '<div class="empty-state">Submit calls to see your score trend</div>';
-    } else {
-      trendDiv.innerHTML = data.trend.map(t => {
-        const h = Math.max(8, (t.total_score / 100) * 170);
-        const color = barColor(t.total_score, 100);
-        return `<div class="trend-bar-wrap">
-          <div class="trend-bar" style="height:${h}px; background:${color};" title="${t.prospect_name}: ${t.total_score}/100">
-            <span class="trend-bar-score">${t.total_score}</span>
-          </div>
-          <span class="trend-bar-label">${t.prospect_name}</span>
-        </div>`;
-      }).join('');
-    }
-
-    // Weakest areas
-    const weakDiv = document.getElementById('weakest-areas');
-    if (data.weakest_areas.length === 0) {
-      weakDiv.innerHTML = '<div class="empty-state">No data yet</div>';
-    } else {
-      weakDiv.innerHTML = data.weakest_areas.map((w, i) => `
-        <div class="weakness-item">
-          <span class="weakness-rank">#${i + 1}</span>
-          <span class="weakness-name">${w.name}</span>
-          <span class="weakness-type ${w.type}">${w.type}</span>
-          <span class="weakness-score" style="color:${barColor(w.avg, 5)}">${w.avg.toFixed(1)}/5</span>
-        </div>
-      `).join('');
-    }
-
-    // Stage averages
-    const stageDiv = document.getElementById('stage-averages');
-    if (data.stage_averages.length === 0) {
-      stageDiv.innerHTML = '<div class="empty-state">No data yet</div>';
-    } else {
-      stageDiv.innerHTML = data.stage_averages.map(s => `
-        <div class="bar-row">
-          <span class="bar-label">${s.stage_name}</span>
-          <div class="bar-track">
-            <div class="bar-fill" style="width:${(s.avg_score / 5) * 100}%; background:${barColor(s.avg_score, 5)};"></div>
-          </div>
-          <span class="bar-value" style="color:${barColor(s.avg_score, 5)}">${s.avg_score.toFixed(1)}</span>
-        </div>
-      `).join('');
-    }
-
-    // Technique averages
-    const techDiv = document.getElementById('technique-averages');
-    if (data.technique_averages.length === 0) {
-      techDiv.innerHTML = '<div class="empty-state">No data yet</div>';
-    } else {
-      techDiv.innerHTML = data.technique_averages.map(t => `
-        <div class="bar-row">
-          <span class="bar-label">${t.technique_name}</span>
-          <div class="bar-track">
-            <div class="bar-fill" style="width:${(t.avg_score / 5) * 100}%; background:${barColor(t.avg_score, 5)};"></div>
-          </div>
-          <span class="bar-value" style="color:${barColor(t.avg_score, 5)}">${t.avg_score.toFixed(1)}</span>
-        </div>
-      `).join('');
-    }
+    data = await res.json();
   } catch (err) {
     console.error('Dashboard error:', err);
+    data = { total_calls: 0, avg_score: 0, latest_grade: '', reps: [], trend: [], weakest_areas: [], stage_averages: [], technique_averages: [] };
+  }
+
+  // If no real data, show demo
+  if (data.total_calls === 0) {
+    isDemo = true;
+    data = DEMO_DATA;
+  }
+
+  // Toggle hero section
+  const hero = document.getElementById('hero-section');
+  const demoDash = document.getElementById('demo-dashboard');
+  if (hero) {
+    hero.style.display = isDemo ? 'block' : 'none';
+  }
+  if (demoDash && isDemo) {
+    demoDash.classList.add('demo-mode');
+  } else if (demoDash) {
+    demoDash.classList.remove('demo-mode');
+  }
+
+  // Update title
+  const titleEl = document.getElementById('dashboard-title');
+  if (titleEl) {
+    titleEl.textContent = isDemo ? 'Preview Dashboard (Demo Data)' : 'Performance Dashboard';
+  }
+
+  document.getElementById('stat-total').textContent = data.total_calls;
+  document.getElementById('stat-avg').textContent = data.avg_score || '--';
+  const gradeEl = document.getElementById('stat-grade');
+  gradeEl.textContent = data.latest_grade || '--';
+  gradeEl.className = 'stat-value ' + scoreClass(data.latest_grade);
+
+  // Rep filter
+  const filter = document.getElementById('rep-filter');
+  const currentVal = filter.value;
+  filter.innerHTML = '<option value="">All Reps</option>';
+  (data.reps || []).forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r;
+    opt.textContent = r;
+    if (r === currentVal) opt.selected = true;
+    filter.appendChild(opt);
+  });
+
+  // Trend chart
+  const trendDiv = document.getElementById('trend-chart');
+  if ((data.trend || []).length === 0) {
+    trendDiv.innerHTML = '<div class="empty-state">Submit calls to see your score trend</div>';
+  } else {
+    trendDiv.innerHTML = data.trend.map(t => {
+      const h = Math.max(8, (t.total_score / 100) * 170);
+      const color = barColor(t.total_score, 100);
+      return `<div class="trend-bar-wrap">
+        <div class="trend-bar" style="height:${h}px; background:${color};" title="${t.prospect_name}: ${t.total_score}/100">
+          <span class="trend-bar-score">${t.total_score}</span>
+        </div>
+        <span class="trend-bar-label">${t.prospect_name}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Weakest areas
+  const weakDiv = document.getElementById('weakest-areas');
+  if ((data.weakest_areas || []).length === 0) {
+    weakDiv.innerHTML = '<div class="empty-state">No data yet</div>';
+  } else {
+    weakDiv.innerHTML = data.weakest_areas.map((w, i) => `
+      <div class="weakness-item">
+        <span class="weakness-rank">#${i + 1}</span>
+        <span class="weakness-name">${w.name}</span>
+        <span class="weakness-type ${w.type}">${w.type}</span>
+        <span class="weakness-score" style="color:${barColor(w.avg, 5)}">${w.avg.toFixed(1)}/5</span>
+      </div>
+    `).join('');
+  }
+
+  // Stage averages
+  const stageDiv = document.getElementById('stage-averages');
+  if ((data.stage_averages || []).length === 0) {
+    stageDiv.innerHTML = '<div class="empty-state">No data yet</div>';
+  } else {
+    stageDiv.innerHTML = data.stage_averages.map(s => `
+      <div class="bar-row">
+        <span class="bar-label">${s.stage_name}</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${(s.avg_score / 5) * 100}%; background:${barColor(s.avg_score, 5)};"></div>
+        </div>
+        <span class="bar-value" style="color:${barColor(s.avg_score, 5)}">${s.avg_score.toFixed(1)}</span>
+      </div>
+    `).join('');
+  }
+
+  // Technique averages
+  const techDiv = document.getElementById('technique-averages');
+  if ((data.technique_averages || []).length === 0) {
+    techDiv.innerHTML = '<div class="empty-state">No data yet</div>';
+  } else {
+    techDiv.innerHTML = data.technique_averages.map(t => `
+      <div class="bar-row">
+        <span class="bar-label">${t.technique_name}</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${(t.avg_score / 5) * 100}%; background:${barColor(t.avg_score, 5)};"></div>
+        </div>
+        <span class="bar-value" style="color:${barColor(t.avg_score, 5)}">${t.avg_score.toFixed(1)}</span>
+      </div>
+    `).join('');
   }
 }
 
@@ -216,7 +297,6 @@ async function loadCalls() {
       </div>
     `).join('');
 
-    // Click to view
     list.querySelectorAll('.call-row').forEach(row => {
       row.addEventListener('click', async e => {
         if (e.target.classList.contains('delete-call')) return;
@@ -229,7 +309,6 @@ async function loadCalls() {
       });
     });
 
-    // Delete buttons
     list.querySelectorAll('.delete-call').forEach(btn => {
       btn.addEventListener('click', async e => {
         e.stopPropagation();
@@ -254,19 +333,16 @@ function showReview(id, review, repName, prospectName, callDate) {
 
   let html = '';
 
-  // Header
   html += `<div class="review-header">
     <h1>Call Review - ${prospectName}</h1>
     <div class="review-meta">${repName} | ${callDate} | ${review.call_duration || ''} | ${review.outcome || ''}</div>
   </div>`;
 
-  // Prospect info
   html += `<div class="prospect-card-review">
     <div><span class="pc-label">Prospect Type</span><br><span class="pc-value" style="font-weight:600; color:var(--cyan);">${review.prospect_type || '-'}</span></div>
     <div><span class="pc-label">Outcome</span><br><span class="pc-value">${review.outcome || '-'}</span></div>
   </div>`;
 
-  // Score banner
   html += `<div class="score-banner">
     <h3>Scoring Summary</h3>
     <div class="score-row">
@@ -280,7 +356,6 @@ function showReview(id, review, repName, prospectName, callDate) {
     </div>
   </div>`;
 
-  // Stage Execution
   html += `<div class="section-hdr"><h2>Part 1 - Stage Execution</h2><span class="badge badge-stage">60% of total</span></div>`;
 
   if (review.stages) {
@@ -291,7 +366,6 @@ function showReview(id, review, repName, prospectName, callDate) {
           <span class="${pillClass(stage.score)}">${stage.score}/5</span>
         </div>`;
 
-      // Hits
       if (stage.hits?.length) {
         html += `<div class="hm-label hit-label">Hits</div>`;
         stage.hits.forEach(h => {
@@ -303,7 +377,6 @@ function showReview(id, review, repName, prospectName, callDate) {
         });
       }
 
-      // Misses
       if (stage.misses?.length) {
         html += `<div class="hm-label miss-label">Misses</div>`;
         stage.misses.forEach(m => {
@@ -315,19 +388,15 @@ function showReview(id, review, repName, prospectName, callDate) {
         });
       }
 
-      // Word tracks
       if (stage.word_tracks?.length) {
         stage.word_tracks.forEach(wt => {
           html += `<div class="wt-box"><div class="wt-label">Suggested Word Track</div>`;
           if (wt.context) html += `<p style="color:var(--text-muted); font-style:italic; margin-bottom:0.5rem;">${wt.context}</p>`;
-          wt.lines?.forEach(line => {
-            html += `<p>${line}</p>`;
-          });
+          wt.lines?.forEach(line => { html += `<p>${line}</p>`; });
           html += `</div>`;
         });
       }
 
-      // Coach notes
       if (stage.coach_notes?.length) {
         html += `<div class="coach-box"><div class="coach-label">Coach Notes</div>`;
         stage.coach_notes.forEach(n => html += `<p>${n}</p>`);
@@ -338,7 +407,6 @@ function showReview(id, review, repName, prospectName, callDate) {
     });
   }
 
-  // Techniques
   html += `<div class="section-hdr"><h2>Part 2 - Cross-Cutting Techniques</h2><span class="badge badge-tech">25% of total</span></div>`;
 
   if (review.techniques) {
@@ -356,7 +424,6 @@ function showReview(id, review, repName, prospectName, callDate) {
     });
   }
 
-  // Rewrites
   if (review.rewrites?.length) {
     html += `<div class="section-hdr"><h2>Script Rewrites</h2><span class="badge badge-stage">What to say instead</span></div>`;
     review.rewrites.forEach(rw => {
@@ -374,7 +441,6 @@ function showReview(id, review, repName, prospectName, callDate) {
     });
   }
 
-  // Upstream Diagnosis
   if (review.upstream_diagnosis?.length) {
     html += `<div class="section-hdr"><h2>Part 3 - Upstream Diagnosis</h2><span class="badge badge-coach">Root cause analysis</span></div>`;
     review.upstream_diagnosis.forEach(u => {
@@ -387,7 +453,6 @@ function showReview(id, review, repName, prospectName, callDate) {
     });
   }
 
-  // Top 3 improvements
   if (review.top_3_improvements?.length) {
     html += `<div class="improvement-card">
       <div class="improvement-title">Top 3 Areas to Improve</div>`;
@@ -397,7 +462,6 @@ function showReview(id, review, repName, prospectName, callDate) {
     html += `</div>`;
   }
 
-  // Action plan
   if (review.action_plan?.length) {
     html += `<div class="action-card">
       <div class="action-title">Action Plan</div>`;
